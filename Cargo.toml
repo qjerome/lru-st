@@ -2,11 +2,12 @@
 name = "lru-st"
 version = "0.1.0"
 edition = "2021"
-description = "A package providing a Vec base doubly linked list implementation and LRU data structures"
+description = "A package providing a Vec based doubly linked list implementation and related data structures"
 license-file = "LICENSE"
 repository = "https://github.com/qjerome/lru-st"
 readme = "README.md"
-keywords = ["data-structure", "lru"]
+keywords = ["data-structure", "doubly-linked-list", "lru-hashmap", "lru"]
+documentation = "https://docs.rs/lru-st"
 
 [features]
 # feature providing thread safety
