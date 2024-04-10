@@ -1,3 +1,5 @@
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/qjerome/lru-st/rust.yml?style=for-the-badge)](https://github.com/qjerome/lru-st/actions/workflows/rust.yml)
+
 # lru-st
 
 This crate provides a Vec based doubly linked list implementation. It also aims at providing
