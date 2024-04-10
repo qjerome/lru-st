@@ -3,12 +3,14 @@ use std::{
     hash::Hash,
     ptr,
 };
+use thiserror::Error;
 
 pub mod collections;
 
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 pub struct Cursor(usize);
 
+/// A node of the doubly linked list
 pub struct Node<T> {
     prev: Option<Cursor>,
     next: Option<Cursor>,
@@ -24,6 +26,24 @@ impl<T> Node<T> {
     }
 }
 
+/// [Vec] based doubly linked list implementation
+///
+/// # Example
+///
+/// ```
+/// use lru_st::DoublyLinkedList;
+///
+/// let mut dll = DoublyLinkedList::new();
+/// dll.push_front(42);
+/// dll.push_front(43);
+///
+/// assert_eq!(dll.back(), Some(&42));
+/// assert_eq!(dll.front(), Some(&43));
+///
+/// dll.push_back(44);
+/// assert_eq!(dll.front(), Some(&43));
+/// assert_eq!(dll.back(), Some(&44));
+/// ```
 pub struct DoublyLinkedList<T> {
     // the head of the list
     head: Option<Cursor>,
@@ -82,27 +102,21 @@ where
     }
 }
 
-#[derive(Debug, PartialEq, PartialOrd, Ord, Eq)]
+#[derive(Debug, Error, PartialEq, PartialOrd, Ord, Eq)]
 pub enum Error {
+    #[error("out of bound index: {0}")]
     OutOfBound(usize),
+    #[error("trying to use a freed node")]
     Uaf,
 }
 
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Error::OutOfBound(i) => write!(f, "index out of bound: {}", i),
-            Error::Uaf => write!(f, "trying to use freed node"),
-        }
-    }
-}
-
 impl<T> DoublyLinkedList<T> {
+    /// Creates a new empty [DoublyLinkedList]
     pub fn new() -> Self {
         Self::default()
     }
 
-    #[inline]
+    /// Creates a new empty [DoublyLinkedList] with a given capacity
     pub fn with_capacity(capacity: usize) -> Self {
         DoublyLinkedList {
             list: Vec::with_capacity(capacity),
@@ -110,7 +124,7 @@ impl<T> DoublyLinkedList<T> {
         }
     }
 
-    #[inline]
+    /// Creates a new [DoublyLinkedList] from a [Vec]
     pub fn from_vec(v: Vec<T>) -> Self {
         let mut d = Self::new();
         for e in v {
@@ -119,7 +133,8 @@ impl<T> DoublyLinkedList<T> {
         d
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Returns true if the list is empty
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -139,6 +154,7 @@ impl<T> DoublyLinkedList<T> {
     }
 
     #[inline]
+    /// Pushes an element to the front of the list
     pub fn push_front(&mut self, v: T) -> Cursor {
         let cursor = self.next_available_cursor();
         let node = Node {
@@ -164,6 +180,7 @@ impl<T> DoublyLinkedList<T> {
     }
 
     #[inline]
+    /// Pushes an element to the back of the list
     pub fn push_back(&mut self, v: T) -> Cursor {
         let cursor = self.next_available_cursor();
         // element to be inserted at the end
@@ -189,7 +206,9 @@ impl<T> DoublyLinkedList<T> {
         cursor
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Get the element at a given position in the list or None
+    /// if there is no element.
     pub fn get(&self, c: Cursor) -> Option<&T> {
         if let Some(e) = self.list.get(c.0) {
             // we return None if node is freed
@@ -201,7 +220,9 @@ impl<T> DoublyLinkedList<T> {
         None
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Get a mutable element at a given position in the list or None
+    /// if there is no element.
     pub fn get_mut(&mut self, c: Cursor) -> Option<&mut T> {
         if let Some(e) = self.list.get_mut(c.0) {
             // we return None if node is freed
@@ -213,7 +234,8 @@ impl<T> DoublyLinkedList<T> {
         None
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Get the element at the front of the list
     pub fn front(&self) -> Option<&T> {
         if let Some(c) = self.head {
             return self.get(c);
@@ -221,7 +243,8 @@ impl<T> DoublyLinkedList<T> {
         None
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Get a mutable reference to the element at the front of the list
     pub fn front_mut(&mut self) -> Option<&mut T> {
         if let Some(c) = self.head {
             return self.get_mut(c);
@@ -229,7 +252,8 @@ impl<T> DoublyLinkedList<T> {
         None
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Get the elemenmt a the back of the list
     pub fn back(&self) -> Option<&T> {
         if let Some(c) = self.tail {
             return self.get(c);
@@ -237,7 +261,8 @@ impl<T> DoublyLinkedList<T> {
         None
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Get a mutable reference to the element at the back of the list
     pub fn back_mut(&mut self) -> Option<&mut T> {
         if let Some(c) = self.tail {
             return self.get_mut(c);
@@ -245,7 +270,8 @@ impl<T> DoublyLinkedList<T> {
         None
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Returns the number of elements in the list
     pub fn len(&self) -> usize {
         self.list.len() - self.free.len()
     }
@@ -256,11 +282,12 @@ impl<T> DoublyLinkedList<T> {
     }
 
     #[inline]
-    pub fn node(&self, at: Cursor) -> Option<&Node<T>> {
+    fn node(&self, at: Cursor) -> Option<&Node<T>> {
         self.list.get(at.0)
     }
 
     #[inline]
+    /// Pops the element a the back of the list
     pub fn pop_back(&mut self) -> Option<T> {
         if let Some(tail_curs) = self.tail {
             // should never panic
@@ -314,6 +341,7 @@ impl<T> DoublyLinkedList<T> {
     }
 
     #[inline]
+    /// Provides an iterator (i.e. [DoublyLinkedListIter]) over the elements of the list
     pub fn iter(&self) -> DoublyLinkedListIter<T> {
         DoublyLinkedListIter {
             dll: self,
@@ -323,8 +351,8 @@ impl<T> DoublyLinkedList<T> {
         }
     }
 
-    // move item at cursor to the head of list
     #[inline]
+    /// Move item at cursor to the head of list
     pub fn move_front(&mut self, at: Cursor) -> Result<(), Error> {
         if at.0 >= self.list.len() {
             return Err(Error::OutOfBound(at.0));
@@ -375,6 +403,7 @@ impl<T> DoublyLinkedList<T> {
     }
 }
 
+/// [DoublyLinkedList] iterator
 pub struct DoublyLinkedListIter<'a, T> {
     dll: &'a DoublyLinkedList<T>,
     front_cursor: Option<Cursor>,

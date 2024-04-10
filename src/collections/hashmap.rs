@@ -2,12 +2,37 @@ use crate::{Cursor, DoublyLinkedList};
 
 use std::{collections::HashMap, fmt::Display, hash::Hash};
 
-#[cfg(not(feature = "async"))]
+#[cfg(not(feature = "sync"))]
 use std::rc::{Rc, Weak};
 
-#[cfg(feature = "async")]
+#[cfg(feature = "sync")]
 use {std::sync::Arc as Rc, std::sync::Weak};
 
+/// Provides a basic LRU HashMap implementation based
+/// on a [DoublyLinkedList]
+///
+/// # Example
+///
+/// ```
+/// use lru_st::collections::LruHashMap;
+///
+/// let mut lru_map = LruHashMap::with_max_entries(10);
+/// lru_map.insert(42, "test");
+///
+/// assert_eq!(lru_map.get(&42), Some("test").as_ref());
+/// assert_eq!(lru_map.len(), 1);
+///
+/// // we fill the map entirely
+/// for i in 0..lru_map.cap(){
+///     lru_map.insert(i, "fill");
+/// }
+///
+/// assert_eq!(lru_map.len(), 10);
+///
+/// // this element disapeared from the map as we filled
+/// // all the map without fetching it
+/// assert_eq!(lru_map.get(&42), None);
+/// ```
 pub struct LruHashMap<K, V> {
     map: HashMap<Rc<K>, Cursor>,
     lru: DoublyLinkedList<(Weak<K>, V)>,
@@ -18,15 +43,17 @@ impl<K, V> LruHashMap<K, V>
 where
     K: Hash + Eq,
 {
+    /// Creates a new [LruHashMap] with a given number of entries
     pub fn with_max_entries(max_entries: usize) -> Self {
         LruHashMap {
-            map: HashMap::new(),
+            map: HashMap::with_capacity(max_entries),
             lru: DoublyLinkedList::with_capacity(max_entries),
             max_entries,
         }
     }
 
     #[inline]
+    /// Get element from the HashMap
     pub fn get(&mut self, k: &K) -> Option<&V> {
         if let Some((_k, v)) = self.map.get(k).and_then(|cursor| {
             self.lru.move_front(*cursor).unwrap();
@@ -38,6 +65,7 @@ where
     }
 
     #[inline]
+    /// Get a mut element from the HashMap
     pub fn get_mut(&mut self, k: &K) -> Option<&mut V> {
         if let Some((_k, v)) = self.map.get(k).and_then(|cursor| {
             self.lru.move_front(*cursor).unwrap();
@@ -49,11 +77,13 @@ where
     }
 
     #[inline]
+    /// Returns true if there is an element for this key in the HashMap
     pub fn contains_key(&mut self, k: &K) -> bool {
         self.get(k).is_some()
     }
 
     #[inline]
+    /// Inserts a new element in the HashMap
     pub fn insert(&mut self, k: K, v: V) {
         // we update value if already there
         if self.map.contains_key(&k) {
@@ -79,12 +109,20 @@ where
         self.map.insert(k, cursor);
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Returns the length of the HashMap
     pub fn len(&self) -> usize {
         self.map.len()
     }
 
-    #[inline]
+    #[inline(always)]
+    /// Returns the capacity of the HashMap
+    pub fn cap(&self) -> usize {
+        self.max_entries
+    }
+
+    #[inline(always)]
+    /// Returns true if the HashMap is empty
     pub fn is_empty(&self) -> bool {
         self.map.is_empty()
     }
@@ -119,6 +157,8 @@ mod tests {
     fn basic_lru_hashmap() {
         let max_entries = 1000;
         let mut lru = LruHashMap::with_max_entries(max_entries);
+        assert!(lru.is_empty());
+        assert_eq!(lru.len(), 0);
         for i in 0..max_entries * 2 {
             lru.insert(i, i)
         }
