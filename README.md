@@ -1,3 +1,4 @@
+[![Crates.io Version](https://img.shields.io/crates/v/lru-st?style=for-the-badge)](https://crates.io/crates/lru-st)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/qjerome/lru-st/rust.yml?style=for-the-badge)](https://github.com/qjerome/lru-st/actions/workflows/rust.yml)
 [![docs.rs](https://img.shields.io/docsrs/lru-st?style=for-the-badge&logo=docs.rs&color=blue)](https://docs.rs/lru-st)
 
