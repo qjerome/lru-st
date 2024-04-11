@@ -2,6 +2,7 @@
 name = "lru-st"
 version = "0.1.1"
 edition = "2021"
+rust-version = "1.60.0"
 description = "A package providing a Vec based doubly linked list implementation and related data structures"
 license-file = "LICENSE"
 repository = "https://github.com/qjerome/lru-st"
