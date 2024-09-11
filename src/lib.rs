@@ -89,6 +89,7 @@ impl<T> Node<T> {
     fn free(&mut self) {
         self.prev = None;
         self.next = None;
+        self.value = None;
         self.free = true;
     }
 }
@@ -553,11 +554,11 @@ impl<T> DoublyLinkedList<T> {
         self.new_prev(self.list[at.0].next, self.list[at.0].prev);
         self.new_next(self.list[at.0].prev, self.list[at.0].next);
 
+        let out = self.list[at.0].value.take();
         // mark node at Cursor as free
         self.list[at.0].free();
         self.free.push(at);
-
-        self.list[at.0].value.take()
+        out
     }
 
     #[inline]
