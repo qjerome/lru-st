@@ -2,19 +2,20 @@
 name = "lru-st"
 version = "0.1.2"
 edition = "2021"
-rust-version = "1.60.0"
 description = "A package providing a Vec based doubly linked list implementation and related data structures"
 license-file = "LICENSE"
 repository = "https://github.com/qjerome/lru-st"
 readme = "README.md"
 keywords = ["data-structure", "doubly-linked-list", "lru-hashmap", "lru"]
 documentation = "https://docs.rs/lru-st"
+rust-version = "1.60.0"
 
 [features]
 # feature providing thread safety
 sync = []
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 thiserror = "1.0.58"
+
+[dev-dependencies]
+rand = "0.8"

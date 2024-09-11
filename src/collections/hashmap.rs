@@ -8,7 +8,7 @@ use std::rc::{Rc, Weak};
 #[cfg(feature = "sync")]
 use {std::sync::Arc as Rc, std::sync::Weak};
 
-/// Provides a basic LRU HashMap implementation based
+/// Provides an LRU HashMap implementation based
 /// on a [DoublyLinkedList]
 ///
 /// # Example
@@ -109,6 +109,17 @@ where
         self.map.insert(k, cursor);
     }
 
+    /// Removes an entry from the [LruHashMap]
+    #[inline]
+    pub fn remove(&mut self, k: &K) -> Option<V> {
+        if let Some(c) = self.map.remove(k) {
+            if let Some((_k, v)) = self.lru.pop(c) {
+                return Some(v);
+            }
+        }
+        None
+    }
+
     #[inline(always)]
     /// Returns the length of the HashMap
     pub fn len(&self) -> usize {
@@ -154,7 +165,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn basic_lru_hashmap() {
+    fn basic_hashmap_test() {
         let max_entries = 1000;
         let mut lru = LruHashMap::with_max_entries(max_entries);
         assert!(lru.is_empty());
@@ -168,5 +179,22 @@ mod tests {
         lru.insert(max_entries + 42, 42);
         assert_eq!(lru.get(&(max_entries + 42)), Some(&42));
         println!("{}", lru);
+    }
+
+    #[test]
+    fn hashmap_remove_test() {
+        let mut lru = LruHashMap::with_max_entries(2);
+        lru.insert(1, 1);
+        lru.insert(2, 2);
+        // we remove the last used entry
+        assert_eq!(lru.remove(&2), Some(2));
+        assert_eq!(lru.get(&2), None);
+        assert_eq!(lru.get(&1), Some(&1));
+
+        // we add two new entries
+        lru.insert(2, 2);
+        lru.insert(3, 3);
+        // this entry must be gone
+        assert_eq!(lru.get(&1), None);
     }
 }
