@@ -59,6 +59,37 @@
 //! // all the map without fetching it
 //! assert_eq!(lru_map.get(&42), None);
 //! ```
+//!
+//! # Example: LRU HashSet
+//!
+//! ```
+//! use lru_st::collections::LruHashSet;
+//!
+//! let mut lru_set = LruHashSet::with_max_entries(10);
+//!
+//! assert_eq!(lru_set.insert("test"), true);
+//! assert_eq!(lru_set.insert("test"), false);
+//!
+//! assert_eq!(lru_set.contains(&"test"), true);
+//!
+//! // we remove one element
+//! assert_eq!(lru_set.remove(&"test"), true);
+//! assert_eq!(lru_set.remove(&"test"), false);
+//!
+//! assert!(lru_set.is_empty());
+//!
+//! let mut lru_set = LruHashSet::with_max_entries(10);
+//!
+//! assert_eq!(lru_set.insert(String::from("will_be_erased")), true);
+//!
+//! for i in 0..10{
+//!     assert_eq!(lru_set.insert(format!("erase_{i}")), true);
+//! }
+//!
+//! // the item vanished as the LRU got full
+//! assert_eq!(lru_set.contains(&String::from("will_be_erased")), false);
+//! assert!(lru_set.is_full());
+//! ```
 
 use std::{
     fmt::{Debug, Display},
