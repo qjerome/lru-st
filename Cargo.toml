@@ -1,6 +1,6 @@
 [package]
 name = "lru-st"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 description = "A package providing a Vec based doubly linked list implementation and related data structures"
 license-file = "LICENSE"
