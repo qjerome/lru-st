@@ -164,9 +164,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
-
-    use crate::collections::LruHashSet;
+    use super::*;
 
     #[test]
     fn basic_hashset_test() {
