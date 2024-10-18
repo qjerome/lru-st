@@ -1,8 +1,10 @@
-use std::{
-    collections::HashMap,
-    hash::Hash,
-    rc::{Rc, Weak},
-};
+use std::{collections::HashMap, hash::Hash};
+
+#[cfg(not(feature = "sync"))]
+use std::rc::{Rc, Weak};
+
+#[cfg(feature = "sync")]
+use {std::sync::Arc as Rc, std::sync::Weak};
 
 use crate::{Cursor, DoublyLinkedList, DoublyLinkedListIter};
 
