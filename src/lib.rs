@@ -7,6 +7,9 @@
 //! It also aims at providing data structures built on top of
 //! doubly linked list such as LRU HashMap.
 //!
+//! # Features
+//! - `sync`: to enable when `collections` structures needs to be used in threads
+//!
 //! # Example: DoublyLinkedList
 //!
 //! ```
