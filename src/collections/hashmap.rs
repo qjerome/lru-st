@@ -177,7 +177,12 @@ where
     /// # Examples
     /// ```
     /// use lru_st::collections::LruHashMap;
+    ///
+    /// #[cfg(not(feature = "sync"))]
     /// use std::rc::Rc;
+    ///
+    /// #[cfg(feature = "sync")]
+    /// use std::sync::Arc as Rc;
     ///
     /// let mut cache = LruHashMap::with_max_entries(2);
     /// cache.insert("a", 1);
@@ -202,7 +207,11 @@ where
     /// # Examples
     /// ```
     /// use lru_st::collections::LruHashMap;
+    /// #[cfg(not(feature = "sync"))]
     /// use std::rc::Rc;
+    ///
+    /// #[cfg(feature = "sync")]
+    /// use std::sync::Arc as Rc;
     ///
     /// let mut cache = LruHashMap::with_max_entries(2);
     /// cache.insert("a", 1);
