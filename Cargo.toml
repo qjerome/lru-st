@@ -2,20 +2,25 @@
 name = "lru-st"
 version = "0.3.0"
 edition = "2021"
-description = "A package providing a Vec based doubly linked list implementation and related data structures"
-license-file = "LICENSE"
-repository = "https://github.com/qjerome/lru-st"
-readme = "README.md"
-keywords = ["data-structure", "doubly-linked-list", "lru-hashmap", "lru"]
-documentation = "https://docs.rs/lru-st"
 rust-version = "1.70.0"
+description = "A package providing a Vec based doubly linked list implementation and related data structures"
+documentation = "https://docs.rs/lru-st"
+readme = "README.md"
+repository = "https://github.com/qjerome/lru-st"
+license-file = "LICENSE"
+keywords = ["data-structure", "doubly-linked-list", "lru", "lru-hashmap"]
 
-[features]
-# feature providing thread safety
-sync = []
+[[bench]]
+harness = false
+name = "linked_list_benchmark"
 
 [dependencies]
 thiserror = "1.0.58"
 
 [dev-dependencies]
+criterion = "0.5"
 rand = "0.8"
+
+[features]
+# feature providing thread safety
+sync = []
