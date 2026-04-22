@@ -17,7 +17,6 @@ use {std::sync::Arc as Rc, std::sync::Weak};
 /// - `'a`: The lifetime of the `LruHashMap` being iterated over.
 /// - `K`: The type of keys in the `LruHashMap`.
 /// - `V`: The type of values in the `LruHashMap`.
-/// ```
 pub struct LruHashmapIter<'a, K, V> {
     it: DoublyLinkedListIter<'a, (Weak<K>, V)>,
 }

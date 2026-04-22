@@ -101,7 +101,7 @@ use std::{
 use thiserror::Error;
 
 /// Module exposing structures implemented
-/// on top of [DoublyLinkList]
+/// on top of [`DoublyLinkedList`]
 pub mod collections;
 
 /// Structure representing a **reference** of an element
@@ -214,7 +214,7 @@ where
     }
 }
 
-/// Enum of the possible [Error] encountered while using
+/// Enum of the possible [enum@Error] encountered while using
 /// a [DoublyLinkedList]
 #[derive(Debug, Error, PartialEq, PartialOrd, Ord, Eq)]
 pub enum Error {
