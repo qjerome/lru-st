@@ -485,7 +485,7 @@ impl<T> DoublyLinkedList<T> {
 
     /// Provides an iterator (i.e. [DoublyLinkedListIter]) over the elements of the list
     #[inline]
-    pub fn iter(&self) -> DoublyLinkedListIter<T> {
+    pub fn iter<'a>(&'a self) -> DoublyLinkedListIter<'a, T> {
         DoublyLinkedListIter {
             dll: self,
             front_cursor: self.head,

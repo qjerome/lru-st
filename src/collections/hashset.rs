@@ -79,7 +79,7 @@ where
     ///
     /// Iterating does not modify the order of the LRU to prevent
     /// any unwanted side effects due.
-    pub fn iter(&mut self) -> Iter<K> {
+    pub fn iter<'a>(&'a mut self) -> Iter<'a, K> {
         Iter {
             lru_iter: self.lru.iter(),
         }
