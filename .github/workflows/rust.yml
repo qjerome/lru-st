@@ -24,3 +24,7 @@ jobs:
       run: cargo test --verbose -F sync
     - name: Run tests with cursor feature
       run: cargo test --verbose -F cursor
+    - name: Run tests with hashbrown feature
+      run: cargo test --verbose -F hashbrown
+    - name: Run tests with all features
+      run: cargo test --verbose --all-features

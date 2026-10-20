@@ -16,6 +16,10 @@ doubly linked list such as LRU HashMap.
 - `cursor`: exposes the [`DoublyLinkedList`](https://docs.rs/lru-st/latest/lru_st/struct.DoublyLinkedList.html) methods taking a [`Cursor`](https://docs.rs/lru-st/latest/lru_st/struct.Cursor.html)
   (`get`, `get_mut`, `pop`, `move_front`), to build structures on top
   of it. Read the [`Cursor`](https://docs.rs/lru-st/latest/lru_st/struct.Cursor.html) documentation about stale cursors first.
+- `hashbrown`: uses [hashbrown](https://docs.rs/hashbrown)'s `HashMap`
+  instead of std's in `collections`. Its default hasher (foldhash) is
+  faster but **not** resistant to HashDoS attacks, so avoid this feature
+  when keys may come from untrusted input.
 
 # Example: DoublyLinkedList
 

@@ -20,6 +20,7 @@ name = "linked_list_benchmark"
 required-features = ["cursor"]
 
 [dependencies]
+hashbrown = { version = "0.17.1", optional = true, default-features = false, features = ["default-hasher"] }
 thiserror = "1.0.58"
 
 [dev-dependencies]
@@ -32,3 +33,6 @@ rand = "0.8"
 cursor = []
 # feature providing thread safety
 sync = []
+# use hashbrown's HashMap instead of std's; its default hasher (foldhash)
+# is faster but NOT resistant to HashDoS, avoid with untrusted keys
+hashbrown = ["dep:hashbrown"]

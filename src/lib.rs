@@ -14,6 +14,10 @@
 //! - `cursor`: exposes the [DoublyLinkedList] methods taking a [Cursor]
 //!   (`get`, `get_mut`, `pop`, `move_front`), to build structures on top
 //!   of it. Read the [Cursor] documentation about stale cursors first.
+//! - `hashbrown`: uses [hashbrown](https://docs.rs/hashbrown)'s `HashMap`
+//!   instead of std's in `collections`. Its default hasher (foldhash) is
+//!   faster but **not** resistant to HashDoS attacks, so avoid this feature
+//!   when keys may come from untrusted input.
 //!
 //! # Example: DoublyLinkedList
 //!
