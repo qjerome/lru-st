@@ -2,13 +2,13 @@
 name = "lru-st"
 version = "0.3.0"
 edition = "2021"
+rust-version = "1.82.0"
 description = "A package providing a Vec based doubly linked list implementation and related data structures"
 documentation = "https://docs.rs/lru-st"
 readme = "README.md"
 repository = "https://github.com/qjerome/lru-st"
 license-file = "LICENSE"
 keywords = ["data-structure", "doubly-linked-list", "lru", "lru-hashmap"]
-rust-version = "1.82.0"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -20,8 +20,8 @@ name = "linked_list_benchmark"
 required-features = ["cursor"]
 
 [dependencies]
-hashbrown = { version = "0.17.1", optional = true, default-features = false, features = ["default-hasher"] }
-thiserror = "1.0.58"
+hashbrown = { version = "0.17", default-features = false, features = ["default-hasher"], optional = true }
+thiserror = "2.0"
 
 [dev-dependencies]
 criterion = "0.5"
@@ -31,8 +31,8 @@ rand = "0.8"
 # exposes LinkedList methods taking a Cursor, for building
 # structures on top of it (see Cursor docs about stale cursors)
 cursor = []
-# feature providing thread safety
-sync = []
 # use hashbrown's HashMap instead of std's; its default hasher (foldhash)
 # is faster but NOT resistant to HashDoS, avoid with untrusted keys
 hashbrown = ["dep:hashbrown"]
+# feature providing thread safety
+sync = []
