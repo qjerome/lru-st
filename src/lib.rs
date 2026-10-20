@@ -669,7 +669,7 @@ impl<T> DoublyLinkedList<T> {
     }
 
     #[inline]
-    #[allow(dead_code)]
+    #[cfg(test)]
     fn verify(&self) {
         let mut prev = Cursor::none();
         let mut oc = self.head;
@@ -927,6 +927,65 @@ mod tests {
             dll.move_front(Cursor::from_index(42)),
             Err(Error::OutOfBound(42))
         ));
+    }
+
+    #[test]
+    fn dll_pop_invalid_cursor() {
+        let mut dll = DoublyLinkedList::new();
+        let c = dll.push_back(1);
+        dll.push_back(2);
+
+        assert_eq!(dll.pop(c), Some(1));
+        assert_eq!(dll.pop(c), None);
+        assert_eq!(dll.pop(Cursor::from_index(42)), None);
+        assert_eq!(dll.pop(Cursor::none()), None);
+        assert_eq!(dll.len(), 1);
+        dll.verify();
+    }
+
+    #[test]
+    fn dll_move_front_head_tail() {
+        let mut dll = DoublyLinkedList::new();
+        let c1 = dll.push_back(1);
+        dll.push_back(2);
+        let c3 = dll.push_back(3);
+
+        // moving the head is a no-op
+        dll.move_front(c1).unwrap();
+        assert_eq!(dll.iter().copied().collect::<Vec<_>>(), [1, 2, 3]);
+
+        // moving the tail updates the tail
+        dll.move_front(c3).unwrap();
+        assert_eq!(dll.iter().copied().collect::<Vec<_>>(), [3, 1, 2]);
+        assert_eq!(dll.back(), Some(&2));
+        dll.verify();
+
+        // single element list
+        let mut one = DoublyLinkedList::new();
+        let c = one.push_back(1);
+        one.move_front(c).unwrap();
+        assert_eq!(one.front(), Some(&1));
+        assert_eq!(one.back(), Some(&1));
+    }
+
+    #[test]
+    fn dll_pop_head_tail() {
+        let mut dll = DoublyLinkedList::new();
+        let c1 = dll.push_back(1);
+        dll.push_back(2);
+        let c3 = dll.push_back(3);
+
+        assert_eq!(dll.pop(c1), Some(1));
+        assert_eq!(dll.front(), Some(&2));
+        assert_eq!(dll.pop(c3), Some(3));
+        assert_eq!(dll.back(), Some(&2));
+        assert_eq!(dll.front(), Some(&2));
+        dll.verify();
+
+        assert_eq!(dll.pop_front(), Some(2));
+        assert!(dll.is_empty());
+        assert!(dll.head.is_none());
+        assert!(dll.tail.is_none());
     }
 
     #[test]
