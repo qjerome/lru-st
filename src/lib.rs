@@ -1,6 +1,6 @@
 #![deny(unused_imports)]
 #![deny(missing_docs)]
-//#![deny(unsafe_code)]
+#![deny(unsafe_code)]
 
 //! # lru-st
 //!
@@ -164,20 +164,11 @@ impl Cursor {
 }
 
 /// A node of the doubly linked list
+#[derive(Clone)]
 struct Node<T> {
     prev: Cursor,
     next: Cursor,
     value: Option<T>,
-}
-
-impl<T: Clone> Clone for Node<T> {
-    fn clone(&self) -> Self {
-        Node {
-            prev: self.prev,
-            next: self.next,
-            value: self.value.clone(),
-        }
-    }
 }
 
 impl<T> Node<T> {
@@ -218,6 +209,7 @@ impl<T> Debug for Node<T> {
 /// assert_eq!(dll.front(), Some(&43));
 /// assert_eq!(dll.back(), Some(&44));
 /// ```
+#[derive(Clone)]
 pub struct DoublyLinkedList<T> {
     // the head of the list
     head: Cursor,
@@ -227,17 +219,6 @@ pub struct DoublyLinkedList<T> {
     list: Vec<Node<T>>,
     // free list to use for new node insertion
     free: Vec<Cursor>,
-}
-
-impl<T: Clone> Clone for DoublyLinkedList<T> {
-    fn clone(&self) -> Self {
-        DoublyLinkedList {
-            head: self.head,
-            tail: self.tail,
-            list: self.list.clone(),
-            free: self.free.clone(),
-        }
-    }
 }
 
 impl<T> Default for DoublyLinkedList<T> {
