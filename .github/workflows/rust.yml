@@ -22,3 +22,5 @@ jobs:
       run: cargo test --verbose
     - name: Run tests with sync feature
       run: cargo test --verbose -F sync
+    - name: Run tests with cursor feature
+      run: cargo test --verbose -F cursor
