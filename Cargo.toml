@@ -10,9 +10,14 @@ repository = "https://github.com/qjerome/lru-st"
 license-file = "LICENSE"
 keywords = ["data-structure", "doubly-linked-list", "lru", "lru-hashmap"]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [[bench]]
 harness = false
 name = "linked_list_benchmark"
+required-features = ["cursor"]
 
 [dependencies]
 thiserror = "1.0.58"
@@ -22,5 +27,8 @@ criterion = "0.5"
 rand = "0.8"
 
 [features]
+# exposes DoublyLinkedList methods taking a Cursor, for building
+# structures on top of it (see Cursor docs about stale cursors)
+cursor = []
 # feature providing thread safety
 sync = []

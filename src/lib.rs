@@ -1,6 +1,7 @@
 #![deny(unused_imports)]
 #![deny(missing_docs)]
 #![deny(unsafe_code)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 //! # lru-st
 //!
@@ -10,35 +11,51 @@
 //!
 //! # Features
 //! - `sync`: to enable when `collections` structures needs to be used in threads
+//! - `cursor`: exposes the [DoublyLinkedList] methods taking a [Cursor]
+//!   (`get`, `get_mut`, `pop`, `move_front`), to build structures on top
+//!   of it. Read the [Cursor] documentation about stale cursors first.
 //!
 //! # Example: DoublyLinkedList
 //!
 //! ```
 //! use lru_st::DoublyLinkedList;
 //!
-//! let mut dll = DoublyLinkedList::new();
-//! for i in 1..=3 {
-//!     dll.push_back(i);
-//! }
-//! let c4 = dll.push_back(4);
+//! let mut dll: DoublyLinkedList<_> = (1..=4).collect();
 //! assert_eq!(dll.len(), 4);
 //!
-//! // a Cursor is a reference to the item, not
-//! // related to its position in the list.
-//! let c0 = dll.push_front(0);
-//!
-//! // first element is 0
+//! dll.push_front(0);
 //! assert_eq!(dll.front(), Some(&0));
+//! assert_eq!(dll.back(), Some(&4));
+//! assert_eq!(dll.get_nth(2), Some(&2));
+//!
+//! assert_eq!(dll.pop_nth(2), Some(2));
+//! assert_eq!(dll.iter().copied().collect::<Vec<_>>(), [0, 1, 3, 4]);
+//! ```
+//!
+//! # Example: DoublyLinkedList with cursors
+//!
+//! Requires the `cursor` feature.
+//!
+//! ```
+//! # #[cfg(feature = "cursor")]
+//! # fn main() {
+//! use lru_st::DoublyLinkedList;
+//!
+//! let mut dll = DoublyLinkedList::new();
+//! dll.push_back(1);
+//! let c2 = dll.push_back(2);
+//!
+//! // a Cursor references an item, not its position in the list
+//! let c0 = dll.push_front(0);
 //! assert_eq!(dll.get(c0), Some(&0));
 //!
-//! // we move item with value 4 at front of
-//! // the list
-//! dll.move_front(c4).unwrap();
-//! assert_eq!(dll.get_nth(0), Some(&4));
-//! assert_eq!(dll.get_nth(1), Some(&0));
-//! // even if order of list items changed cursors
-//! // are never affected by those changes
+//! dll.move_front(c2).unwrap();
+//! assert_eq!(dll.get_nth(0), Some(&2));
+//! // cursors are not affected by reordering
 //! assert_eq!(dll.get(c0), Some(&0));
+//! # }
+//! # #[cfg(not(feature = "cursor"))]
+//! # fn main() {}
 //! ```
 //!
 //! # Example: LRU HashMap
@@ -101,6 +118,22 @@ use std::{
 };
 use thiserror::Error;
 
+// Methods taking a Cursor are crate-private unless the `cursor` feature
+// is enabled, as stale cursors silently alias reused slots.
+macro_rules! cursor_api {
+    ($(#[$meta:meta])* fn $($rest:tt)*) => {
+        #[cfg(feature = "cursor")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "cursor")))]
+        $(#[$meta])*
+        pub fn $($rest)*
+
+        #[cfg(not(feature = "cursor"))]
+        #[allow(dead_code)]
+        $(#[$meta])*
+        pub(crate) fn $($rest)*
+    };
+}
+
 /// Module exposing structures implemented
 /// on top of [`DoublyLinkedList`]
 pub mod collections;
@@ -114,14 +147,18 @@ pub mod collections;
 ///
 /// Once its element is removed, a [Cursor] becomes stale and
 /// must not be used anymore. Until the freed slot is reused,
-/// [DoublyLinkedList::get] and [DoublyLinkedList::pop] return
-/// `None` and [DoublyLinkedList::move_front] returns
+/// `get` and `pop` return `None` and `move_front` returns
 /// [Error::Uaf]. However, the next push may reuse the slot, in
 /// which case the stale [Cursor] silently refers to the new
 /// element. A [Cursor] is also not bound to the list that
 /// created it, so using it with another list is a logic error.
 ///
+/// Methods taking a [Cursor] are only public with the `cursor`
+/// feature, so that callers opt into handling this.
+///
 /// ```
+/// # #[cfg(feature = "cursor")]
+/// # fn main() {
 /// use lru_st::DoublyLinkedList;
 ///
 /// let mut dll = DoublyLinkedList::new();
@@ -132,6 +169,9 @@ pub mod collections;
 /// // the freed slot is reused: `c` now refers to 2
 /// dll.push_back(2);
 /// assert_eq!(dll.get(c), Some(&2));
+/// # }
+/// # #[cfg(not(feature = "cursor"))]
+/// # fn main() {}
 /// ```
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 pub struct Cursor(usize);
@@ -456,12 +496,14 @@ impl<T> DoublyLinkedList<T> {
         cursor
     }
 
-    /// Get the element in the list at a given [Cursor] or None
-    /// if there is no element. If wanting to get an element at
-    /// a given position see [DoublyLinkedList::get_nth].
-    #[inline]
-    pub fn get(&self, c: Cursor) -> Option<&T> {
-        self.list.get(c.index()).and_then(|n| n.value.as_ref())
+    cursor_api! {
+        /// Get the element in the list at a given [Cursor] or None
+        /// if there is no element. If wanting to get an element at
+        /// a given position see [DoublyLinkedList::get_nth].
+        #[inline]
+        fn get(&self, c: Cursor) -> Option<&T> {
+            self.list.get(c.index()).and_then(|n| n.value.as_ref())
+        }
     }
 
     /// Get an element given its position in the list
@@ -470,11 +512,13 @@ impl<T> DoublyLinkedList<T> {
         self.get(self.get_nth_cursor(n)?)
     }
 
-    /// Get a mutable element at a given position in the list or None
-    /// if there is no element.
-    #[inline]
-    pub fn get_mut(&mut self, c: Cursor) -> Option<&mut T> {
-        self.list.get_mut(c.index()).and_then(|n| n.value.as_mut())
+    cursor_api! {
+        /// Get a mutable element at a given [Cursor] in the list or None
+        /// if there is no element.
+        #[inline]
+        fn get_mut(&mut self, c: Cursor) -> Option<&mut T> {
+            self.list.get_mut(c.index()).and_then(|n| n.value.as_mut())
+        }
     }
 
     /// Get an element given its position in the list
@@ -581,21 +625,23 @@ impl<T> DoublyLinkedList<T> {
         }
     }
 
-    /// Move item at cursor to the head of list
-    #[inline]
-    pub fn move_front(&mut self, at: Cursor) -> Result<(), Error> {
-        let node = self
-            .list
-            .get(at.index())
-            .ok_or(Error::OutOfBound(at.index()))?;
+    cursor_api! {
+        /// Move item at cursor to the head of list
+        #[inline]
+        fn move_front(&mut self, at: Cursor) -> Result<(), Error> {
+            let node = self
+                .list
+                .get(at.index())
+                .ok_or(Error::OutOfBound(at.index()))?;
 
-        // only detects stale cursors until their slot is reused
-        if node.is_free() {
-            return Err(Error::Uaf);
+            // only detects stale cursors until their slot is reused
+            if node.is_free() {
+                return Err(Error::Uaf);
+            }
+
+            self.move_front_unchecked(at);
+            Ok(())
         }
-
-        self.move_front_unchecked(at);
-        Ok(())
     }
 
     /// Pops the item at front of the doubly linked list
@@ -608,16 +654,18 @@ impl<T> DoublyLinkedList<T> {
         }
     }
 
-    /// Pops the item located at `at` [Cursor] in the doubly linked list.
-    /// This API pops an element according to its [Cursor] which is
-    /// not corresponding to its position within the linked list.
-    /// To pop an item according to its position in the linked list
-    /// use `pop_nth`.
-    #[inline]
-    pub fn pop(&mut self, at: Cursor) -> Option<T> {
-        match self.list.get(at.index()) {
-            Some(n) if !n.is_free() => self._pop(at),
-            _ => None,
+    cursor_api! {
+        /// Pops the item located at `at` [Cursor] in the doubly linked list.
+        /// This API pops an element according to its [Cursor] which is
+        /// not corresponding to its position within the linked list.
+        /// To pop an item according to its position in the linked list
+        /// use `pop_nth`.
+        #[inline]
+        fn pop(&mut self, at: Cursor) -> Option<T> {
+            match self.list.get(at.index()) {
+                Some(n) if !n.is_free() => self._pop(at),
+                _ => None,
+            }
         }
     }
 
