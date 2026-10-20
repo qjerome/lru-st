@@ -187,7 +187,13 @@ impl<T> Node<T> {
 
 impl<T> Debug for Node<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "prev={:?} next={:?}", self.prev, self.next)
+        write!(
+            f,
+            "prev={:?} next={:?} free={:?}",
+            self.prev,
+            self.next,
+            self.is_free()
+        )
     }
 }
 
