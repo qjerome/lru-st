@@ -1,4 +1,4 @@
-use crate::{Cursor, DoublyLinkedList, DoublyLinkedListIter};
+use crate::{DoublyLinkedList, DoublyLinkedListIter, Cursor};
 
 use std::{collections::HashMap, fmt::Display, hash::Hash};
 
@@ -128,7 +128,7 @@ where
     #[inline]
     pub fn get(&mut self, k: &K) -> Option<&V> {
         if let Some((_k, v)) = self.map.get(k).and_then(|cursor| {
-            self.lru.move_front(*cursor).unwrap();
+            self.lru.move_front_unchecked(*cursor);
             self.lru.front()
         }) {
             return Some(v);
@@ -159,7 +159,7 @@ where
     #[inline]
     pub fn get_mut(&mut self, k: &K) -> Option<&mut V> {
         if let Some((_k, v)) = self.map.get(k).and_then(|cursor| {
-            self.lru.move_front(*cursor).unwrap();
+            self.lru.move_front_unchecked(*cursor);
             self.lru.front_mut()
         }) {
             return Some(v);
@@ -294,8 +294,7 @@ where
     pub fn insert(&mut self, k: K, v: V) -> Option<(K, V)> {
         let mut removed = None;
         // we update value if already there
-        if self.map.contains_key(&k) {
-            let old = self.get_mut(&k).expect("value must exist");
+        if let Some(old) = self.get_mut(&k) {
             *old = v;
             return removed;
         }
@@ -357,6 +356,7 @@ where
     /// assert_eq!(cache.pop_lru(), Some(("b", 2)));
     /// assert_eq!(cache.pop_lru(), None);
     /// ```
+    #[inline]
     pub fn pop_lru(&mut self) -> Option<(K, V)> {
         let mut removed = None;
         if let Some((k, v)) = self.lru.pop_back() {
@@ -388,7 +388,7 @@ where
     /// cache.insert("a", 1);
     /// assert_eq!(cache.len(), 1);
     /// ```
-    #[inline(always)]
+    #[inline]
     pub fn len(&self) -> usize {
         self.map.len()
     }
@@ -403,7 +403,7 @@ where
     /// cache.insert("a", 1);
     /// assert_eq!(cache.cap(), 2);
     /// ```
-    #[inline(always)]
+    #[inline]
     pub fn cap(&self) -> usize {
         self.max_entries
     }
@@ -419,7 +419,7 @@ where
     /// cache.insert("a", 1);
     /// assert!(!cache.is_empty());
     /// ```
-    #[inline(always)]
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.map.is_empty()
     }

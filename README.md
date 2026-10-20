@@ -17,31 +17,31 @@ doubly linked list such as LRU HashMap.
 # Example: DoublyLinkedList
 
 ```rust
-use lru_st::{dll, Cursor};
+use lru_st::DoublyLinkedList;
 
-let mut dll = dll![1, 2, 3, 4];
+let mut dll = DoublyLinkedList::new();
+for i in 1..=3 {
+    dll.push_back(i);
+}
+let c4 = dll.push_back(4);
 assert_eq!(dll.len(), 4);
 
-let c = dll.push_front(0);
-// even though the element has been pushed
-// at front (i.e. 0th position in the list)
-// its [Cursor] is 4. This is because the
-// Cursor is a reference to the item not
+// a Cursor is a reference to the item, not
 // related to its position in the list.
-assert_eq!(c, Cursor(4));
+let c0 = dll.push_front(0);
 
 // first element is 0
 assert_eq!(dll.front(), Some(&0));
-assert_eq!(dll.get(Cursor(4)), Some(&0));
+assert_eq!(dll.get(c0), Some(&0));
 
 // we move item with value 4 at front of
 // the list
-dll.move_front(Cursor(3)).unwrap();
+dll.move_front(c4).unwrap();
 assert_eq!(dll.get_nth(0), Some(&4));
 assert_eq!(dll.get_nth(1), Some(&0));
 // even if order of list items changed cursors
 // are never affected by those changes
-assert_eq!(dll.get(Cursor(4)), Some(&0));
+assert_eq!(dll.get(c0), Some(&0));
 ```
 
 # Example: LRU HashMap
