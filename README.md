@@ -13,7 +13,7 @@ doubly linked list such as LRU HashMap.
 
 # Features
 - `sync`: to enable when `collections` structures needs to be used in threads
-- `cursor`: exposes the [`DoublyLinkedList`](https://docs.rs/lru-st/latest/lru_st/struct.DoublyLinkedList.html) methods taking a [`Cursor`](https://docs.rs/lru-st/latest/lru_st/struct.Cursor.html)
+- `cursor`: exposes the [`LinkedList`](https://docs.rs/lru-st/latest/lru_st/struct.LinkedList.html) methods taking a [`Cursor`](https://docs.rs/lru-st/latest/lru_st/struct.Cursor.html)
   (`get`, `get_mut`, `pop`, `move_front`), to build structures on top
   of it. Read the [`Cursor`](https://docs.rs/lru-st/latest/lru_st/struct.Cursor.html) documentation about stale cursors first.
 - `hashbrown`: uses [hashbrown](https://docs.rs/hashbrown)'s `HashMap`
@@ -21,12 +21,12 @@ doubly linked list such as LRU HashMap.
   faster but **not** resistant to HashDoS attacks, so avoid this feature
   when keys may come from untrusted input.
 
-# Example: DoublyLinkedList
+# Example: LinkedList
 
 ```rust
-use lru_st::DoublyLinkedList;
+use lru_st::LinkedList;
 
-let mut dll: DoublyLinkedList<_> = (1..=4).collect();
+let mut dll: LinkedList<_> = (1..=4).collect();
 assert_eq!(dll.len(), 4);
 
 dll.push_front(0);
@@ -38,14 +38,14 @@ assert_eq!(dll.pop_nth(2), Some(2));
 assert_eq!(dll.iter().copied().collect::<Vec<_>>(), [0, 1, 3, 4]);
 ```
 
-# Example: DoublyLinkedList with cursors
+# Example: LinkedList with cursors
 
 Requires the `cursor` feature.
 
 ```rust
-use lru_st::DoublyLinkedList;
+use lru_st::LinkedList;
 
-let mut dll = DoublyLinkedList::new();
+let mut dll = LinkedList::new();
 dll.push_back(1);
 let c2 = dll.push_back(2);
 

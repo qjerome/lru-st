@@ -1,4 +1,4 @@
-use crate::{Cursor, DoublyLinkedList, DoublyLinkedListIter};
+use crate::{Cursor, LinkedList, LinkedListIter};
 
 #[cfg(feature = "hashbrown")]
 use hashbrown::HashMap;
@@ -24,7 +24,7 @@ use {std::sync::Arc as Rc, std::sync::Weak};
 /// - `K`: The type of keys in the `LruHashMap`.
 /// - `V`: The type of values in the `LruHashMap`.
 pub struct LruHashmapIter<'a, K, V> {
-    it: DoublyLinkedListIter<'a, (Weak<K>, V)>,
+    it: LinkedListIter<'a, (Weak<K>, V)>,
 }
 
 impl<'a, K, V> LruHashmapIter<'a, K, V> {
@@ -67,7 +67,7 @@ impl<'a, K, V> DoubleEndedIterator for LruHashmapIter<'a, K, V> {
     }
 }
 
-/// A Least Recently Used (LRU) cache implemented on top of [`HashMap`] and [`DoublyLinkedList`] list.
+/// A Least Recently Used (LRU) cache implemented on top of [`HashMap`] and [`LinkedList`] list.
 ///
 /// The `LruHashMap` maintains a maximum number of entries. When the cache is full and a new
 /// entry is inserted, the least recently used entry is removed.
@@ -90,7 +90,7 @@ impl<'a, K, V> DoubleEndedIterator for LruHashmapIter<'a, K, V> {
 /// ```
 pub struct LruHashMap<K, V> {
     map: HashMap<Rc<K>, Cursor>,
-    lru: DoublyLinkedList<(Weak<K>, V)>,
+    lru: LinkedList<(Weak<K>, V)>,
     max_entries: usize,
 }
 
@@ -118,7 +118,7 @@ where
     pub fn with_max_entries(max_entries: usize) -> Self {
         LruHashMap {
             map: HashMap::with_capacity(max_entries),
-            lru: DoublyLinkedList::with_capacity(max_entries),
+            lru: LinkedList::with_capacity(max_entries),
             max_entries,
         }
     }

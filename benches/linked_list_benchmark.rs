@@ -1,10 +1,10 @@
 // This benchmark file was AI-generated and has not been extensively reviewed.
-// It compares the custom Vec-based DoublyLinkedList implementation with std::collections::LinkedList.
+// It compares the custom Vec-based lru_st::LinkedList implementation with std::collections::LinkedList.
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use lru_st::DoublyLinkedList;
+use lru_st::LinkedList;
 use rand::prelude::*;
-use std::collections::LinkedList;
+use std::collections::LinkedList as StdLinkedList;
 
 fn benchmark_push_front(c: &mut Criterion) {
     let mut group = c.benchmark_group("push_front");
@@ -12,7 +12,7 @@ fn benchmark_push_front(c: &mut Criterion) {
     for size in [100, 1000, 10_000].iter() {
         group.bench_with_input(BenchmarkId::new("DoublyLinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut dll = DoublyLinkedList::with_capacity(s);
+                let mut dll = LinkedList::with_capacity(s);
                 for i in 0..s {
                     dll.push_front(black_box(i));
                 }
@@ -22,7 +22,7 @@ fn benchmark_push_front(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("std::LinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut list = LinkedList::new();
+                let mut list = StdLinkedList::new();
                 for i in 0..s {
                     list.push_front(black_box(i));
                 }
@@ -40,7 +40,7 @@ fn benchmark_push_back(c: &mut Criterion) {
     for size in [100, 1000, 10_000].iter() {
         group.bench_with_input(BenchmarkId::new("DoublyLinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut dll = DoublyLinkedList::with_capacity(s);
+                let mut dll = LinkedList::with_capacity(s);
                 for i in 0..s {
                     dll.push_back(black_box(i));
                 }
@@ -50,7 +50,7 @@ fn benchmark_push_back(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("std::LinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut list = LinkedList::new();
+                let mut list = StdLinkedList::new();
                 for i in 0..s {
                     list.push_back(black_box(i));
                 }
@@ -68,7 +68,7 @@ fn benchmark_pop_front(c: &mut Criterion) {
     for size in [100, 1000, 10_000].iter() {
         group.bench_with_input(BenchmarkId::new("DoublyLinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut dll = DoublyLinkedList::with_capacity(s);
+                let mut dll = LinkedList::with_capacity(s);
                 for i in 0..s {
                     dll.push_back(black_box(i));
                 }
@@ -80,7 +80,7 @@ fn benchmark_pop_front(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("std::LinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut list = LinkedList::new();
+                let mut list = StdLinkedList::new();
                 for i in 0..s {
                     list.push_back(black_box(i));
                 }
@@ -100,7 +100,7 @@ fn benchmark_pop_back(c: &mut Criterion) {
     for size in [100, 1000, 10_000].iter() {
         group.bench_with_input(BenchmarkId::new("DoublyLinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut dll = DoublyLinkedList::with_capacity(s);
+                let mut dll = LinkedList::with_capacity(s);
                 for i in 0..s {
                     dll.push_front(black_box(i));
                 }
@@ -112,7 +112,7 @@ fn benchmark_pop_back(c: &mut Criterion) {
 
         group.bench_with_input(BenchmarkId::new("std::LinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut list = LinkedList::new();
+                let mut list = StdLinkedList::new();
                 for i in 0..s {
                     list.push_front(black_box(i));
                 }
@@ -137,7 +137,7 @@ fn benchmark_iter_forward(c: &mut Criterion) {
             BenchmarkId::new("DoublyLinkedList", size),
             size,
             |b, &_s| {
-                let dll: DoublyLinkedList<_> = dll_data.iter().cloned().collect();
+                let dll: LinkedList<_> = dll_data.iter().cloned().collect();
                 b.iter(|| {
                     let mut sum = 0usize;
                     for v in dll.iter() {
@@ -149,7 +149,7 @@ fn benchmark_iter_forward(c: &mut Criterion) {
         );
 
         group.bench_with_input(BenchmarkId::new("std::LinkedList", size), size, |b, &_s| {
-            let list: LinkedList<usize> = std_data.clone().into_iter().collect();
+            let list: StdLinkedList<usize> = std_data.clone().into_iter().collect();
             b.iter(|| {
                 let mut sum = 0usize;
                 for v in list.iter() {
@@ -174,7 +174,7 @@ fn benchmark_iter_backward(c: &mut Criterion) {
             BenchmarkId::new("DoublyLinkedList", size),
             size,
             |b, &_s| {
-                let dll: DoublyLinkedList<_> = dll_data.iter().cloned().collect();
+                let dll: LinkedList<_> = dll_data.iter().cloned().collect();
                 b.iter(|| {
                     let mut sum = 0usize;
                     for v in dll.iter().rev() {
@@ -186,7 +186,7 @@ fn benchmark_iter_backward(c: &mut Criterion) {
         );
 
         group.bench_with_input(BenchmarkId::new("std::LinkedList", size), size, |b, &_s| {
-            let list: LinkedList<usize> = std_data.clone().into_iter().collect();
+            let list: StdLinkedList<usize> = std_data.clone().into_iter().collect();
             b.iter(|| {
                 let mut sum = 0usize;
                 for v in list.iter().rev() {
@@ -205,7 +205,7 @@ fn benchmark_get_by_cursor(c: &mut Criterion) {
 
     for size in [100, 1000, 10_000].iter() {
         group.bench_with_input(BenchmarkId::new("DoublyLinkedList", size), size, |b, &s| {
-            let mut dll = DoublyLinkedList::with_capacity(s);
+            let mut dll = LinkedList::with_capacity(s);
             let mut cursors = Vec::with_capacity(s);
             for i in 0..s {
                 cursors.push(dll.push_back(i));
@@ -229,7 +229,7 @@ fn benchmark_move_front(c: &mut Criterion) {
     for size in [100, 1000, 10_000].iter() {
         group.bench_with_input(BenchmarkId::new("DoublyLinkedList", size), size, |b, &s| {
             b.iter(|| {
-                let mut dll = DoublyLinkedList::with_capacity(s);
+                let mut dll = LinkedList::with_capacity(s);
                 let mut cursors = Vec::with_capacity(s);
                 for i in 0..s {
                     cursors.push(dll.push_back(i));
@@ -248,8 +248,8 @@ fn benchmark_random_access(c: &mut Criterion) {
     let mut group = c.benchmark_group("random_access_iter_nth");
 
     for size in [100, 1000, 10_000].iter() {
-        let dll: DoublyLinkedList<_> = (0..*size).collect();
-        let std_list: LinkedList<usize> = (0..*size).collect();
+        let dll: LinkedList<_> = (0..*size).collect();
+        let std_list: StdLinkedList<usize> = (0..*size).collect();
 
         let mut rng = thread_rng();
         let indices: Vec<usize> = (0..*size).map(|_| rng.gen_range(0..*size)).collect();

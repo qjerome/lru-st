@@ -12,14 +12,14 @@ use std::rc::{Rc, Weak};
 #[cfg(feature = "sync")]
 use {std::sync::Arc as Rc, std::sync::Weak};
 
-use crate::{Cursor, DoublyLinkedList, DoublyLinkedListIter};
+use crate::{Cursor, LinkedList, LinkedListIter};
 
 /// An iterator over the items of a [LruHashSet].
 pub struct Iter<'a, K>
 where
     K: Hash + Eq,
 {
-    lru_iter: DoublyLinkedListIter<'a, Weak<K>>,
+    lru_iter: LinkedListIter<'a, Weak<K>>,
 }
 
 impl<'a, K> Iterator for Iter<'a, K>
@@ -50,7 +50,7 @@ where
 /// A LRU HashSet implementation
 pub struct LruHashSet<K> {
     map: HashMap<Rc<K>, Cursor>,
-    lru: DoublyLinkedList<Weak<K>>,
+    lru: LinkedList<Weak<K>>,
     max_entries: usize,
 }
 
@@ -62,7 +62,7 @@ where
     pub fn with_max_entries(max_entries: usize) -> Self {
         LruHashSet {
             map: HashMap::with_capacity(max_entries),
-            lru: DoublyLinkedList::with_capacity(max_entries),
+            lru: LinkedList::with_capacity(max_entries),
             max_entries,
         }
     }

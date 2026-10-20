@@ -11,7 +11,7 @@
 //!
 //! # Features
 //! - `sync`: to enable when `collections` structures needs to be used in threads
-//! - `cursor`: exposes the [DoublyLinkedList] methods taking a [Cursor]
+//! - `cursor`: exposes the [LinkedList] methods taking a [Cursor]
 //!   (`get`, `get_mut`, `pop`, `move_front`), to build structures on top
 //!   of it. Read the [Cursor] documentation about stale cursors first.
 //! - `hashbrown`: uses [hashbrown](https://docs.rs/hashbrown)'s `HashMap`
@@ -19,12 +19,12 @@
 //!   faster but **not** resistant to HashDoS attacks, so avoid this feature
 //!   when keys may come from untrusted input.
 //!
-//! # Example: DoublyLinkedList
+//! # Example: LinkedList
 //!
 //! ```
-//! use lru_st::DoublyLinkedList;
+//! use lru_st::LinkedList;
 //!
-//! let mut dll: DoublyLinkedList<_> = (1..=4).collect();
+//! let mut dll: LinkedList<_> = (1..=4).collect();
 //! assert_eq!(dll.len(), 4);
 //!
 //! dll.push_front(0);
@@ -36,16 +36,16 @@
 //! assert_eq!(dll.iter().copied().collect::<Vec<_>>(), [0, 1, 3, 4]);
 //! ```
 //!
-//! # Example: DoublyLinkedList with cursors
+//! # Example: LinkedList with cursors
 //!
 //! Requires the `cursor` feature.
 //!
 //! ```
 //! # #[cfg(feature = "cursor")]
 //! # fn main() {
-//! use lru_st::DoublyLinkedList;
+//! use lru_st::LinkedList;
 //!
-//! let mut dll = DoublyLinkedList::new();
+//! let mut dll = LinkedList::new();
 //! dll.push_back(1);
 //! let c2 = dll.push_back(2);
 //!
@@ -139,11 +139,11 @@ macro_rules! cursor_api {
 }
 
 /// Module exposing structures implemented
-/// on top of [`DoublyLinkedList`]
+/// on top of [`LinkedList`]
 pub mod collections;
 
 /// Structure representing a **reference** of an element
-/// within a [DoublyLinkedList]. It is important to
+/// within a [LinkedList]. It is important to
 /// remember that a [Cursor] does not represent the
 /// position of an element.
 ///
@@ -163,9 +163,9 @@ pub mod collections;
 /// ```
 /// # #[cfg(feature = "cursor")]
 /// # fn main() {
-/// use lru_st::DoublyLinkedList;
+/// use lru_st::LinkedList;
 ///
-/// let mut dll = DoublyLinkedList::new();
+/// let mut dll = LinkedList::new();
 /// let c = dll.push_back(1);
 /// dll.pop(c);
 /// assert_eq!(dll.get(c), None);
@@ -246,9 +246,9 @@ impl<T> Debug for Node<T> {
 /// # Example
 ///
 /// ```
-/// use lru_st::DoublyLinkedList;
+/// use lru_st::LinkedList;
 ///
-/// let mut dll = DoublyLinkedList::new();
+/// let mut dll = LinkedList::new();
 /// dll.push_front(42);
 /// dll.push_front(43);
 ///
@@ -260,7 +260,7 @@ impl<T> Debug for Node<T> {
 /// assert_eq!(dll.back(), Some(&44));
 /// ```
 #[derive(Clone)]
-pub struct DoublyLinkedList<T> {
+pub struct LinkedList<T> {
     // the head of the list
     head: Cursor,
     // the tail of the list
@@ -271,9 +271,9 @@ pub struct DoublyLinkedList<T> {
     free: Vec<Cursor>,
 }
 
-impl<T> Default for DoublyLinkedList<T> {
+impl<T> Default for LinkedList<T> {
     fn default() -> Self {
-        DoublyLinkedList {
+        LinkedList {
             head: Cursor::none(),
             tail: Cursor::none(),
             list: Vec::new(),
@@ -282,7 +282,7 @@ impl<T> Default for DoublyLinkedList<T> {
     }
 }
 
-impl<T> Debug for DoublyLinkedList<T>
+impl<T> Debug for LinkedList<T>
 where
     T: Debug,
 {
@@ -300,7 +300,7 @@ where
     }
 }
 
-impl<T> Display for DoublyLinkedList<T>
+impl<T> Display for LinkedList<T>
 where
     T: Display,
 {
@@ -319,7 +319,7 @@ where
 }
 
 /// Enum of the possible [enum@Error] encountered while using
-/// a [DoublyLinkedList]
+/// a [LinkedList]
 #[derive(Debug, Error, PartialEq, PartialOrd, Ord, Eq)]
 pub enum Error {
     /// Error returned when trying to access
@@ -333,7 +333,7 @@ pub enum Error {
     Uaf,
 }
 
-impl<T> PartialEq for DoublyLinkedList<T>
+impl<T> PartialEq for LinkedList<T>
 where
     T: PartialEq,
 {
@@ -359,7 +359,7 @@ where
     }
 }
 
-impl<T> FromIterator<T> for DoublyLinkedList<T> {
+impl<T> FromIterator<T> for LinkedList<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut d = Self::new();
         for e in iter {
@@ -369,24 +369,24 @@ impl<T> FromIterator<T> for DoublyLinkedList<T> {
     }
 }
 
-impl<T> DoublyLinkedList<T> {
-    /// Creates a new empty [DoublyLinkedList]
+impl<T> LinkedList<T> {
+    /// Creates a new empty [LinkedList]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Creates a new empty [DoublyLinkedList] with a given capacity
+    /// Creates a new empty [LinkedList] with a given capacity
     pub fn with_capacity(capacity: usize) -> Self {
-        DoublyLinkedList {
+        LinkedList {
             list: Vec::with_capacity(capacity),
             ..Default::default()
         }
     }
 
-    /// Creates a new [DoublyLinkedList] from a [Vec]
+    /// Creates a new [LinkedList] from a [Vec]
     #[deprecated(
         since = "0.4.0",
-        note = "use `collect()` or `DoublyLinkedList::from_iter` instead"
+        note = "use `collect()` or `LinkedList::from_iter` instead"
     )]
     pub fn from_vec(v: Vec<T>) -> Self {
         Self::from_iter(v)
@@ -503,7 +503,7 @@ impl<T> DoublyLinkedList<T> {
     cursor_api! {
         /// Get the element in the list at a given [Cursor] or None
         /// if there is no element. If wanting to get an element at
-        /// a given position see [DoublyLinkedList::get_nth].
+        /// a given position see [LinkedList::get_nth].
         #[inline]
         fn get(&self, c: Cursor) -> Option<&T> {
             self.list.get(c.index()).and_then(|n| n.value.as_ref())
@@ -588,10 +588,10 @@ impl<T> DoublyLinkedList<T> {
         }
     }
 
-    /// Provides an iterator (i.e. [DoublyLinkedListIter]) over the elements of the list
+    /// Provides an iterator (i.e. [LinkedListIter]) over the elements of the list
     #[inline]
-    pub fn iter<'a>(&'a self) -> DoublyLinkedListIter<'a, T> {
-        DoublyLinkedListIter {
+    pub fn iter<'a>(&'a self) -> LinkedListIter<'a, T> {
+        LinkedListIter {
             dll: self,
             front_cursor: self.head,
             back_cursor: self.tail,
@@ -726,15 +726,23 @@ impl<T> DoublyLinkedList<T> {
     }
 }
 
-/// [DoublyLinkedList] iterator
-pub struct DoublyLinkedListIter<'a, T> {
-    dll: &'a DoublyLinkedList<T>,
+/// Former name of [LinkedList]
+#[deprecated(since = "0.4.0", note = "renamed to `LinkedList`")]
+pub type DoublyLinkedList<T> = LinkedList<T>;
+
+/// Former name of [LinkedListIter]
+#[deprecated(since = "0.4.0", note = "renamed to `LinkedListIter`")]
+pub type DoublyLinkedListIter<'a, T> = LinkedListIter<'a, T>;
+
+/// [LinkedList] iterator
+pub struct LinkedListIter<'a, T> {
+    dll: &'a LinkedList<T>,
     front_cursor: Cursor,
     back_cursor: Cursor,
     len: usize,
 }
 
-impl<'a, T> Iterator for DoublyLinkedListIter<'a, T> {
+impl<'a, T> Iterator for LinkedListIter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
         if self.len == 0 {
@@ -753,11 +761,11 @@ impl<'a, T> Iterator for DoublyLinkedListIter<'a, T> {
     }
 }
 
-impl<T> ExactSizeIterator for DoublyLinkedListIter<'_, T> {}
+impl<T> ExactSizeIterator for LinkedListIter<'_, T> {}
 
-impl<T> std::iter::FusedIterator for DoublyLinkedListIter<'_, T> {}
+impl<T> std::iter::FusedIterator for LinkedListIter<'_, T> {}
 
-impl<'a, T> DoubleEndedIterator for DoublyLinkedListIter<'a, T> {
+impl<'a, T> DoubleEndedIterator for LinkedListIter<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.len == 0 {
             return None;
@@ -771,7 +779,7 @@ impl<'a, T> DoubleEndedIterator for DoublyLinkedListIter<'a, T> {
     }
 }
 
-/// Macro used to create a [DoublyLinkedList]
+/// Macro used to create a [LinkedList]
 ///
 /// # Example
 ///
@@ -786,7 +794,7 @@ impl<'a, T> DoubleEndedIterator for DoublyLinkedListIter<'a, T> {
 macro_rules! dll {
     [$($item:literal),*] => {
         {
-            let mut dll=$crate::DoublyLinkedList::new();
+            let mut dll=$crate::LinkedList::new();
             $(dll.push_back($item);)*
             dll
         }
@@ -803,7 +811,7 @@ mod tests {
     #[allow(deprecated)]
     fn dll_from_vec_test() {
         let len = 100;
-        let d = DoublyLinkedList::from_vec((0..len).collect());
+        let d = LinkedList::from_vec((0..len).collect());
         println!("{}", d);
         let mut i = 0;
 
@@ -817,7 +825,7 @@ mod tests {
 
     #[test]
     fn dll_rev_iter_test() {
-        let d: DoublyLinkedList<_> = (1..=5).collect();
+        let d: LinkedList<_> = (1..=5).collect();
         println!("{}", d);
         let mut iter = d.iter();
         assert_eq!(iter.next(), Some(&1));
@@ -832,7 +840,7 @@ mod tests {
     #[test]
     fn dll_iter_test() {
         let len = 100;
-        let d: DoublyLinkedList<_> = (0..len).collect();
+        let d: LinkedList<_> = (0..len).collect();
 
         let mut i = len - 1;
         for v in d.iter().rev() {
@@ -846,7 +854,7 @@ mod tests {
     #[test]
     fn dll_push_back_test() {
         let len = 100;
-        let mut d = DoublyLinkedList::new();
+        let mut d = LinkedList::new();
 
         for i in 0..len {
             d.push_back(i);
@@ -873,7 +881,7 @@ mod tests {
     fn dll_push_front_test() {
         let len = 100;
 
-        let mut d = DoublyLinkedList::new();
+        let mut d = LinkedList::new();
 
         for i in (0..len).rev() {
             d.push_front(i);
@@ -898,7 +906,7 @@ mod tests {
     fn dll_move_front_test() {
         let len = 100;
 
-        let mut d = DoublyLinkedList::new();
+        let mut d = LinkedList::new();
 
         for i in 0..len {
             d.push_front(i);
@@ -915,7 +923,7 @@ mod tests {
     fn dll_pop_front_test() {
         let len = 100;
 
-        let mut d = DoublyLinkedList::new();
+        let mut d = LinkedList::new();
 
         for i in 0..len {
             d.push_front(i);
@@ -969,7 +977,7 @@ mod tests {
         assert_eq!(it.next(), Some(&1));
         assert_eq!(it.next_back(), None);
 
-        let empty: DoublyLinkedList<i32> = DoublyLinkedList::new();
+        let empty: LinkedList<i32> = LinkedList::new();
         assert_eq!(empty.iter().next(), None);
         assert_eq!(empty.iter().next_back(), None);
     }
@@ -990,7 +998,7 @@ mod tests {
 
     #[test]
     fn dll_move_front_freed() {
-        let mut dll = DoublyLinkedList::new();
+        let mut dll = LinkedList::new();
         let c = dll.push_back(1);
         dll.push_back(2);
 
@@ -1006,7 +1014,7 @@ mod tests {
 
     #[test]
     fn dll_pop_invalid_cursor() {
-        let mut dll = DoublyLinkedList::new();
+        let mut dll = LinkedList::new();
         let c = dll.push_back(1);
         dll.push_back(2);
 
@@ -1020,7 +1028,7 @@ mod tests {
 
     #[test]
     fn dll_move_front_head_tail() {
-        let mut dll = DoublyLinkedList::new();
+        let mut dll = LinkedList::new();
         let c1 = dll.push_back(1);
         dll.push_back(2);
         let c3 = dll.push_back(3);
@@ -1036,7 +1044,7 @@ mod tests {
         dll.verify();
 
         // single element list
-        let mut one = DoublyLinkedList::new();
+        let mut one = LinkedList::new();
         let c = one.push_back(1);
         one.move_front(c).unwrap();
         assert_eq!(one.front(), Some(&1));
@@ -1045,7 +1053,7 @@ mod tests {
 
     #[test]
     fn dll_pop_head_tail() {
-        let mut dll = DoublyLinkedList::new();
+        let mut dll = LinkedList::new();
         let c1 = dll.push_back(1);
         dll.push_back(2);
         let c3 = dll.push_back(3);
@@ -1068,7 +1076,7 @@ mod tests {
         let mut rng = thread_rng();
         let len = 100;
 
-        let mut d = DoublyLinkedList::new();
+        let mut d = LinkedList::new();
 
         for i in 0..len {
             d.push_front(i);
@@ -1095,7 +1103,7 @@ mod tests {
 
     #[test]
     fn get_nth_test() {
-        let dll: DoublyLinkedList<_> = [10, 20, 30, 40].into_iter().collect();
+        let dll: LinkedList<_> = [10, 20, 30, 40].into_iter().collect();
 
         assert_eq!(dll.get(Cursor::from_index(2)), Some(&30));
         assert_eq!(dll.get_nth(0), Some(&10));
@@ -1108,7 +1116,7 @@ mod tests {
 
     #[test]
     fn get_nth_empty_test() {
-        let dll: DoublyLinkedList<i32> = DoublyLinkedList::new();
+        let dll: LinkedList<i32> = LinkedList::new();
         assert_eq!(dll.get_nth(0), None);
     }
 }

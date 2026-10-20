@@ -28,7 +28,7 @@ criterion = "0.5"
 rand = "0.8"
 
 [features]
-# exposes DoublyLinkedList methods taking a Cursor, for building
+# exposes LinkedList methods taking a Cursor, for building
 # structures on top of it (see Cursor docs about stale cursors)
 cursor = []
 # feature providing thread safety
