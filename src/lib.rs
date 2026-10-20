@@ -5,19 +5,46 @@
 
 //! # lru-st
 //!
-//! This crate provides a Vec based doubly linked list implementation.
-//! It also aims at providing data structures built on top of
-//! doubly linked list such as LRU HashMap.
+//! A doubly linked list stored in a single [`Vec`], and the LRU collections
+//! built on top of it.
 //!
-//! # Features
-//! - `sync`: to enable when `collections` structures needs to be used in threads
-//! - `cursor`: exposes the [LinkedList] methods taking a [Cursor]
-//!   (`get`, `get_mut`, `pop`, `move_front`), to build structures on top
-//!   of it. Read the [Cursor] documentation about stale cursors first.
-//! - `hashbrown`: uses [hashbrown](https://docs.rs/hashbrown)'s `HashMap`
-//!   instead of std's in `collections`. Its default hasher (foldhash) is
-//!   faster but **not** resistant to HashDoS attacks, so avoid this feature
-//!   when keys may come from untrusted input.
+//! Nodes live in one contiguous buffer and are linked by index instead of
+//! by pointer. Freed slots are recycled, so pushing and popping at either
+//! end does not go through the allocator once the buffer has grown. Every
+//! push returns a [`Cursor`], a stable handle that gives O(1) access to,
+//! removal of, or promotion of that element regardless of its position:
+//! the operations an LRU cache needs.
+//!
+//! The crate is written entirely in safe Rust (`#![deny(unsafe_code)]`).
+//!
+//! # Data structures
+//!
+//! | Type | Description |
+//! |------|-------------|
+//! | [`LinkedList`] | `Vec`-backed doubly linked list with O(1) push/pop at both ends |
+//! | [`collections::LruHashMap`] | Bounded map evicting the least recently used entry |
+//! | [`collections::LruHashSet`] | Bounded set evicting the least recently used value |
+//!
+//! # Performance
+//!
+//! Compared with [`std::collections::LinkedList`], which allocates every
+//! node separately:
+//!
+//! - pushing and popping at either end, and building a list with
+//!   `collect`, are several times faster, and the gap grows with the
+//!   list length;
+//! - iteration still follows links one node at a time and is somewhat
+//!   slower than std's.
+//!
+//! Run `cargo bench --features cursor` to measure on your hardware.
+//!
+//! # Feature flags
+//!
+//! | Feature | Description |
+//! |---------|-------------|
+//! | `cursor` | Makes the [`LinkedList`] methods taking a [`Cursor`] public (`get`, `get_mut`, `pop`, `move_front`) for building custom structures. Read the [stale cursors](Cursor#stale-cursors) section first. |
+//! | `sync` | Uses `Arc` instead of `Rc` inside `collections` so they can be sent across threads. |
+//! | `hashbrown` | Uses [hashbrown](https://docs.rs/hashbrown)'s `HashMap` in `collections`. Its default hasher (foldhash) is faster but **not** resistant to HashDoS: avoid it when keys come from untrusted input. |
 //!
 //! # Example: LinkedList
 //!
@@ -73,15 +100,14 @@
 //! assert_eq!(lru_map.get(&42), Some("test").as_ref());
 //! assert_eq!(lru_map.len(), 1);
 //!
-//! // we fill the map entirely
-//! for i in 0..lru_map.cap(){
+//! // fill the map without touching key 42 again
+//! for i in 0..lru_map.cap() {
 //!     lru_map.insert(i, "fill");
 //! }
 //!
 //! assert_eq!(lru_map.len(), 10);
 //!
-//! // this element disapeared from the map as we filled
-//! // all the map without fetching it
+//! // 42 was the least recently used entry, so it was evicted
 //! assert_eq!(lru_map.get(&42), None);
 //! ```
 //!
@@ -97,7 +123,6 @@
 //!
 //! assert_eq!(lru_set.contains(&"test"), true);
 //!
-//! // we remove one element
 //! assert_eq!(lru_set.remove(&"test"), true);
 //! assert_eq!(lru_set.remove(&"test"), false);
 //!
@@ -107,7 +132,7 @@
 //!
 //! assert_eq!(lru_set.insert(String::from("will_be_erased")), true);
 //!
-//! for i in 0..10{
+//! for i in 0..10 {
 //!     assert_eq!(lru_set.insert(format!("erase_{i}")), true);
 //! }
 //!

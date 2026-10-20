@@ -2,13 +2,13 @@
 name = "lru-st"
 version = "0.3.0"
 edition = "2021"
-rust-version = "1.70.0"
 description = "A package providing a Vec based doubly linked list implementation and related data structures"
 documentation = "https://docs.rs/lru-st"
 readme = "README.md"
 repository = "https://github.com/qjerome/lru-st"
 license-file = "LICENSE"
 keywords = ["data-structure", "doubly-linked-list", "lru", "lru-hashmap"]
+rust-version = "1.82.0"
 
 [package.metadata.docs.rs]
 all-features = true
