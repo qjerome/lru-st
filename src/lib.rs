@@ -703,7 +703,16 @@ impl<'a, T> Iterator for DoublyLinkedListIter<'a, T> {
         self.len -= 1;
         node.value.as_ref()
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.len, Some(self.len))
+    }
 }
+
+impl<T> ExactSizeIterator for DoublyLinkedListIter<'_, T> {}
+
+impl<T> std::iter::FusedIterator for DoublyLinkedListIter<'_, T> {}
 
 impl<'a, T> DoubleEndedIterator for DoublyLinkedListIter<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
@@ -888,6 +897,20 @@ mod tests {
         let mut dll = dll![1, 2, 3, 4, 5];
         dll.move_front(Cursor::from_index(2)).unwrap();
         assert_eq!(dll.pop_nth(2), Some(2));
+    }
+
+    #[test]
+    fn dll_iter_size_hint() {
+        let dll = dll![1, 2, 3];
+        let mut it = dll.iter();
+        assert_eq!(it.len(), 3);
+        it.next();
+        it.next_back();
+        assert_eq!(it.size_hint(), (1, Some(1)));
+        assert_eq!(it.next(), Some(&2));
+        assert_eq!(it.len(), 0);
+        assert_eq!(it.next(), None);
+        assert_eq!(it.next_back(), None);
     }
 
     #[test]

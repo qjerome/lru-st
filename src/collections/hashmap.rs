@@ -38,7 +38,16 @@ impl<'a, K, V> Iterator for LruHashmapIter<'a, K, V> {
             .expect("weak reference must be valid because the key exists in the map");
         Some((k, &(item.1)))
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.it.size_hint()
+    }
 }
+
+impl<K, V> ExactSizeIterator for LruHashmapIter<'_, K, V> {}
+
+impl<K, V> std::iter::FusedIterator for LruHashmapIter<'_, K, V> {}
 
 impl<'a, K, V> DoubleEndedIterator for LruHashmapIter<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
