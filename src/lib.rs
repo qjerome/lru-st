@@ -109,6 +109,30 @@ pub mod collections;
 /// within a [DoublyLinkedList]. It is important to
 /// remember that a [Cursor] does not represent the
 /// position of an element.
+///
+/// # Stale cursors
+///
+/// Once its element is removed, a [Cursor] becomes stale and
+/// must not be used anymore. Until the freed slot is reused,
+/// [DoublyLinkedList::get] and [DoublyLinkedList::pop] return
+/// `None` and [DoublyLinkedList::move_front] returns
+/// [Error::Uaf]. However, the next push may reuse the slot, in
+/// which case the stale [Cursor] silently refers to the new
+/// element. A [Cursor] is also not bound to the list that
+/// created it, so using it with another list is a logic error.
+///
+/// ```
+/// use lru_st::DoublyLinkedList;
+///
+/// let mut dll = DoublyLinkedList::new();
+/// let c = dll.push_back(1);
+/// dll.pop(c);
+/// assert_eq!(dll.get(c), None);
+///
+/// // the freed slot is reused: `c` now refers to 2
+/// dll.push_back(2);
+/// assert_eq!(dll.get(c), Some(&2));
+/// ```
 #[derive(Debug, Clone, Hash, Copy, Eq, PartialEq)]
 pub struct Cursor(usize);
 
