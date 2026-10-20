@@ -1,6 +1,12 @@
 use crate::{Cursor, DoublyLinkedList, DoublyLinkedListIter};
 
-use std::{collections::HashMap, fmt::Display, hash::Hash};
+#[cfg(feature = "hashbrown")]
+use hashbrown::HashMap;
+
+#[cfg(not(feature = "hashbrown"))]
+use std::collections::HashMap;
+
+use std::{fmt::Display, hash::Hash};
 
 #[cfg(not(feature = "sync"))]
 use std::rc::{Rc, Weak};

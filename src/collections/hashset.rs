@@ -1,4 +1,10 @@
-use std::{collections::HashMap, hash::Hash};
+#[cfg(feature = "hashbrown")]
+use hashbrown::HashMap;
+
+#[cfg(not(feature = "hashbrown"))]
+use std::collections::HashMap;
+
+use std::hash::Hash;
 
 #[cfg(not(feature = "sync"))]
 use std::rc::{Rc, Weak};
