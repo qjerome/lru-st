@@ -65,7 +65,7 @@ where
     #[inline]
     pub fn get(&mut self, k: &K) -> Option<Rc<K>> {
         if let Some(k) = self.map.get(k).and_then(|cursor| {
-            self.lru.move_front(*cursor).unwrap();
+            self.lru.move_front_unchecked(*cursor);
             self.lru.front()
         }) {
             return k.upgrade();
@@ -138,25 +138,25 @@ where
     }
 
     /// Returns the length of the `LruHashSet`
-    #[inline(always)]
+    #[inline]
     pub fn len(&self) -> usize {
         self.map.len()
     }
 
     /// Returns the capacity of the `LruHashSet`
-    #[inline(always)]
+    #[inline]
     pub fn cap(&self) -> usize {
         self.max_entries
     }
 
     /// Returns `true` if the `LruHashSet` is empty
-    #[inline(always)]
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.map.is_empty()
     }
 
     /// Returns `true` if the `LruHashSet` is full
-    #[inline(always)]
+    #[inline]
     pub fn is_full(&self) -> bool {
         self.max_entries == self.map.len()
     }

@@ -137,7 +137,7 @@ fn benchmark_iter_forward(c: &mut Criterion) {
             BenchmarkId::new("DoublyLinkedList", size),
             size,
             |b, &_s| {
-                let dll = DoublyLinkedList::from_vec(dll_data.clone());
+                let dll: DoublyLinkedList<_> = dll_data.iter().cloned().collect();
                 b.iter(|| {
                     let mut sum = 0usize;
                     for v in dll.iter() {
@@ -174,7 +174,7 @@ fn benchmark_iter_backward(c: &mut Criterion) {
             BenchmarkId::new("DoublyLinkedList", size),
             size,
             |b, &_s| {
-                let dll = DoublyLinkedList::from_vec(dll_data.clone());
+                let dll: DoublyLinkedList<_> = dll_data.iter().cloned().collect();
                 b.iter(|| {
                     let mut sum = 0usize;
                     for v in dll.iter().rev() {
@@ -248,7 +248,7 @@ fn benchmark_random_access(c: &mut Criterion) {
     let mut group = c.benchmark_group("random_access_iter_nth");
 
     for size in [100, 1000, 10_000].iter() {
-        let dll = DoublyLinkedList::from_vec((0..*size).collect());
+        let dll: DoublyLinkedList<_> = (0..*size).collect();
         let std_list: LinkedList<usize> = (0..*size).collect();
 
         let mut rng = thread_rng();
