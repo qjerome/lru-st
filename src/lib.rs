@@ -814,12 +814,15 @@ mod tests {
             let back = d.pop_back();
             assert!(back.is_some(), "iteration {i}");
             assert_eq!(back.unwrap(), i, "iteration {i}");
+            assert!(d.list[i].is_free());
+            assert!(d.free.iter().all(|c| d.list[c.index()].is_free()));
         }
 
         assert!(d.is_empty());
         assert!(d.head.is_none());
         assert!(d.tail.is_none());
         assert_eq!(d.free.len(), len);
+        assert!(d.list.iter().all(Node::is_free));
     }
 
     #[test]
@@ -836,12 +839,15 @@ mod tests {
 
         for i in (0..len).rev() {
             assert_eq!(d.pop_back().unwrap(), i);
+            assert!(d.list[len - i - 1].is_free());
+            assert!(d.free.iter().all(|c| d.list[c.index()].is_free()));
         }
 
         assert!(d.is_empty());
         assert!(d.head.is_none());
         assert!(d.tail.is_none());
         assert_eq!(d.free.len(), len);
+        assert!(d.list.iter().all(Node::is_free));
     }
 
     #[test]
