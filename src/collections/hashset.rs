@@ -6,7 +6,7 @@ use std::rc::{Rc, Weak};
 #[cfg(feature = "sync")]
 use {std::sync::Arc as Rc, std::sync::Weak};
 
-use crate::{DoublyLinkedList, DoublyLinkedListIter, Cursor};
+use crate::{Cursor, DoublyLinkedList, DoublyLinkedListIter};
 
 /// An iterator over the items of a [LruHashSet].
 pub struct Iter<'a, K>

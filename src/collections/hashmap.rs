@@ -1,4 +1,4 @@
-use crate::{DoublyLinkedList, DoublyLinkedListIter, Cursor};
+use crate::{Cursor, DoublyLinkedList, DoublyLinkedListIter};
 
 use std::{collections::HashMap, fmt::Display, hash::Hash};
 

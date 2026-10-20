@@ -1022,7 +1022,6 @@ mod tests {
 
         for (i, c) in cursors.iter().map(|i| (*i, Cursor::from_index(*i))) {
             d.verify();
-            println!("i={i:?}");
             assert_eq!(d.get(c), Some(&i));
             assert_eq!(d.pop(c), Some(i));
             assert_eq!(d.pop(c), None);
