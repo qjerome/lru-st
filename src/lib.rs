@@ -271,6 +271,11 @@ pub enum Error {
     /// an out of bound index
     #[error("out of bound index: {0}")]
     OutOfBound(usize),
+
+    /// Error raised when trying to use a
+    /// node already freed.
+    #[error("stale cursor: its element has already been removed from the list")]
+    Uaf,
 }
 
 impl<T> PartialEq for DoublyLinkedList<T>
@@ -563,8 +568,14 @@ impl<T> DoublyLinkedList<T> {
     /// Move item at cursor to the head of list
     #[inline]
     pub fn move_front(&mut self, at: Cursor) -> Result<(), Error> {
-        if at.index() >= self.list.len() {
-            return Err(Error::OutOfBound(at.index()));
+        let node = self
+            .list
+            .get(at.index())
+            .ok_or(Error::OutOfBound(at.index()))?;
+
+        // only detects stale cursors until their slot is reused
+        if node.is_free() {
+            return Err(Error::Uaf);
         }
 
         self.move_front_unchecked(at);
@@ -852,6 +863,22 @@ mod tests {
         let mut dll = dll![1, 2, 3, 4, 5];
         dll.move_front(Cursor::from_index(2)).unwrap();
         assert_eq!(dll.pop_nth(2), Some(2));
+    }
+
+    #[test]
+    fn dll_move_front_freed() {
+        let mut dll = DoublyLinkedList::new();
+        let c = dll.push_back(1);
+        dll.push_back(2);
+
+        assert_eq!(dll.pop(c), Some(1));
+        assert!(matches!(dll.move_front(c), Err(Error::Uaf)));
+        assert_eq!(dll.front(), Some(&2));
+
+        assert!(matches!(
+            dll.move_front(Cursor::from_index(42)),
+            Err(Error::OutOfBound(42))
+        ));
     }
 
     #[test]
