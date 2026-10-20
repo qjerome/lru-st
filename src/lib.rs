@@ -591,10 +591,10 @@ impl<T> DoublyLinkedList<T> {
     /// Pops the item at front of the doubly linked list
     #[inline]
     pub fn pop_front(&mut self) -> Option<T> {
-        if self.head.is_none() {
-            None
+        if self.head.is_some() {
+            self._pop(self.head)
         } else {
-            self.pop(self.head)
+            None
         }
     }
 
