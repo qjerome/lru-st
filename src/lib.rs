@@ -540,6 +540,7 @@ impl<T> DoublyLinkedList<T> {
     pub(crate) fn move_front_unchecked(&mut self, at: Cursor) {
         let i = at.index();
         let node = &mut self.list[i];
+        debug_assert!(!node.is_free());
 
         // if we are not processing head
         if node.prev.is_some() {
