@@ -900,6 +900,31 @@ mod tests {
     }
 
     #[test]
+    fn dll_iter_mixed_ends() {
+        let one = dll![1];
+        let mut it = one.iter();
+        assert_eq!(it.next_back(), Some(&1));
+        assert_eq!(it.next(), None);
+        assert_eq!(it.next_back(), None);
+
+        let two = dll![1, 2];
+        let mut it = two.iter();
+        assert_eq!(it.next(), Some(&1));
+        assert_eq!(it.next_back(), Some(&2));
+        assert_eq!(it.next(), None);
+        assert_eq!(it.next_back(), None);
+
+        let mut it = two.iter();
+        assert_eq!(it.next_back(), Some(&2));
+        assert_eq!(it.next(), Some(&1));
+        assert_eq!(it.next_back(), None);
+
+        let empty: DoublyLinkedList<i32> = DoublyLinkedList::new();
+        assert_eq!(empty.iter().next(), None);
+        assert_eq!(empty.iter().next_back(), None);
+    }
+
+    #[test]
     fn dll_iter_size_hint() {
         let dll = dll![1, 2, 3];
         let mut it = dll.iter();
