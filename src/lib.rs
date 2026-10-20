@@ -340,6 +340,10 @@ impl<T> DoublyLinkedList<T> {
     }
 
     /// Creates a new [DoublyLinkedList] from a [Vec]
+    #[deprecated(
+        since = "0.4.0",
+        note = "use `collect()` or `DoublyLinkedList::from_iter` instead"
+    )]
     pub fn from_vec(v: Vec<T>) -> Self {
         Self::from_iter(v)
     }
@@ -744,6 +748,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(deprecated)]
     fn dll_from_vec_test() {
         let len = 100;
         let d = DoublyLinkedList::from_vec((0..len).collect());
@@ -760,7 +765,7 @@ mod tests {
 
     #[test]
     fn dll_rev_iter_test() {
-        let d = DoublyLinkedList::from_vec(vec![1, 2, 3, 4, 5]);
+        let d: DoublyLinkedList<_> = (1..=5).collect();
         println!("{}", d);
         let mut iter = d.iter();
         assert_eq!(iter.next(), Some(&1));
@@ -775,7 +780,7 @@ mod tests {
     #[test]
     fn dll_iter_test() {
         let len = 100;
-        let d = DoublyLinkedList::from_vec((0..len).collect());
+        let d: DoublyLinkedList<_> = (0..len).collect();
 
         let mut i = len - 1;
         for v in d.iter().rev() {
@@ -1038,7 +1043,7 @@ mod tests {
 
     #[test]
     fn get_nth_test() {
-        let dll = DoublyLinkedList::from_vec(vec![10, 20, 30, 40]);
+        let dll: DoublyLinkedList<_> = [10, 20, 30, 40].into_iter().collect();
 
         assert_eq!(dll.get(Cursor::from_index(2)), Some(&30));
         assert_eq!(dll.get_nth(0), Some(&10));
